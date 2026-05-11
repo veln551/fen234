@@ -1,0 +1,622 @@
+
+
+```html
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>Uzay Quiz</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,'Inter','Helvetica Neue',sans-serif;
+  background:#111318;color:#d4d4d8;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  -webkit-font-smoothing:antialiased;
+}
+
+body::before{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  background:
+    radial-gradient(circle at 72% 20%, rgba(99,102,241,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(168,85,247,0.03) 0%, transparent 50%);
+  z-index:0;pointer-events:none;
+}
+
+.scr{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:5;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;opacity:0;
+  transition:opacity .35s ease,transform .35s ease;
+  transform:translateY(6px);
+}
+.scr.on{display:flex;opacity:1;transform:translateY(0)}
+
+.b{
+  display:block;width:100%;padding:15px 20px;margin:6px 0;
+  border:none;border-radius:10px;font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .2s ease;
+  font-family:inherit;position:relative;letter-spacing:-.01em;
+  text-align:center;
+}
+.b:active{transform:scale(.97)}
+.b:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+.b1{background:#27272a;color:#e4e4e7;border:1px solid #3f3f46}
+.b1:hover{background:#303036;border-color:#52525b}
+
+.b2{background:#3730a3;color:#e0e7ff;border:1px solid #4338ca}
+.b2:hover{background:#4338ca}
+
+.b3{background:#1e1e22;color:#a1a1aa;border:1px solid #2e2e35}
+.b3:hover{background:#252529;color:#d4d4d8}
+
+.bsm{padding:11px 16px;font-size:13px;margin:4px 0}
+
+.bdanger{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b}
+.bdanger:hover{background:#991b1b}
+
+.menu{max-width:380px;width:100%;text-align:center}
+.title{font-size:22px;font-weight:700;color:#f4f4f5;letter-spacing:-.03em}
+.sub{font-size:12px;color:#52525b;margin-top:4px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.menu-gap{margin-top:32px}
+
+.spanel{max-width:380px;width:100%;text-align:center}
+.stitle{font-size:18px;font-weight:700;color:#e4e4e7;margin-bottom:24px}
+.sgroup{
+  background:#1a1a1f;border-radius:12px;padding:18px;
+  margin-bottom:12px;border:1px solid #27272a;text-align:left;
+}
+.slabel{font-size:12px;color:#71717a;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.sval{font-size:28px;font-weight:700;color:#a5b4fc;margin:6px 0;text-align:center}
+.scontrols{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:4px}
+.sbtn{
+  width:38px;height:38px;border-radius:8px;border:1px solid #3f3f46;
+  background:#27272a;color:#a1a1aa;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:inherit;
+  transition:all .15s;
+}
+.sbtn:hover{background:#303036;color:#e4e4e7}
+.sbtn:active{transform:scale(.92)}
+.sunit{font-size:11px;color:#52525b}
+
+.hud{
+  width:100%;max-width:520px;display:flex;justify-content:space-between;
+  align-items:center;padding:8px 0;margin-bottom:12px;
+}
+.hud-i{text-align:center}
+.hud-l{font-size:10px;color:#52525b;text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.hud-v{font-size:24px;font-weight:700;color:#a5b4fc;margin-top:1px}
+.hud-v.tmr{color:#fbbf24}
+.hud-v.tmr.low{color:#ef4444;animation:throb .5s ease-in-out infinite alternate}
+@keyframes throb{from{opacity:1}to{opacity:.6}}
+
+.pbar-wrap{width:100%;max-width:520px;height:4px;background:#27272a;border-radius:2px;margin-bottom:16px;overflow:hidden}
+.pbar{height:100%;background:#6366f1;border-radius:2px;transition:width .4s ease;width:0}
+
+.qcard{
+  width:100%;max-width:520px;
+  background:#1a1a1f;border:1px solid #27272a;border-radius:14px;
+  padding:22px 20px;margin-bottom:14px;
+}
+.qnum{font-size:11px;color:#52525b;text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px}
+.qtxt{font-size:16px;font-weight:600;line-height:1.5;color:#e4e4e7}
+
+.opts{width:100%;max-width:520px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{
+  padding:14px 12px;border-radius:10px;border:1px solid #27272a;
+  background:#1a1a1f;color:#a1a1aa;font-size:14px;font-weight:500;
+  cursor:pointer;transition:all .2s;text-align:left;line-height:1.35;
+  font-family:inherit;display:flex;align-items:flex-start;gap:8px;
+}
+.opt:hover:not(.dis){background:#222228;border-color:#3f3f46;color:#d4d4d8}
+.opt:active:not(.dis){transform:scale(.97)}
+.opt.ok{background:rgba(34,197,94,.12)!important;border-color:#22c55e!important;color:#4ade80!important}
+.opt.no{background:rgba(239,68,68,.12)!important;border-color:#ef4444!important;color:#f87171!important}
+.opt.dis{cursor:not-allowed;opacity:.5}
+.olet{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:22px;height:22px;border-radius:6px;
+  background:#27272a;font-size:11px;font-weight:700;color:#71717a;
+  flex-shrink:0;
+}
+
+#scr-mp{padding:0;flex-direction:row}
+.phalf{
+  width:50%;height:100%;display:flex;flex-direction:column;
+  align-items:center;padding:10px 8px;overflow-y:auto;overflow-x:hidden;
+}
+.phalf.pa{border-right:1px solid #1e1e23}
+.phead{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:4px;padding:5px 14px;border-radius:6px;
+  flex-shrink:0;
+}
+.pa .phead{color:#818cf8;background:rgba(129,140,248,.08)}
+.pb .phead{color:#c084fc;background:rgba(192,132,252,.08)}
+.mhud{display:flex;justify-content:space-around;width:100%;margin-bottom:6px;flex-shrink:0}
+.mhud .hud-l{font-size:9px}.mhud .hud-v{font-size:18px}
+.mq{
+  width:100%;background:#161619;border:1px solid #222228;border-radius:10px;
+  padding:10px 8px;margin-bottom:6px;flex-shrink:0;
+}
+.mq .qnum{font-size:9px;margin-bottom:4px}.mq .qtxt{font-size:12px;line-height:1.35}
+.mopts{width:100%;display:grid;grid-template-columns:1fr;gap:5px;flex-shrink:0}
+.mopts .opt{padding:9px 8px;font-size:11px;border-radius:8px}
+.mopts .olet{min-width:18px;height:18px;font-size:9px;border-radius:5px}
+
+.rbox{text-align:center;max-width:380px;width:100%}
+.r-badge{
+  width:56px;height:56px;border-radius:14px;margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;
+}
+.r-badge.w{background:#14532d;color:#4ade80;border:1px solid #166534}
+.r-badge.l{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b}
+.r-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.r-title.w{color:#4ade80}.r-title.l{color:#f87171}
+.r-sub{font-size:13px;color:#71717a;margin-bottom:20px;line-height:1.4}
+.r-stats{background:#1a1a1f;border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid #27272a}
+.st-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #222228}
+.st-row:last-child{border-bottom:none}
+.st-l{color:#71717a;font-size:13px}.st-v{color:#d4d4d8;font-weight:600;font-size:13px}
+
+.back{
+  position:absolute;top:14px;left:14px;width:36px;height:36px;border-radius:8px;
+  border:1px solid #27272a;background:#1a1a1f;color:#71717a;font-size:16px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  z-index:15;transition:all .15s;font-family:inherit;
+}
+.back:hover{background:#222228;color:#a1a1aa}
+
+.modal-bg{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.55);z-index:50;display:none;
+  align-items:center;justify-content:center;
+}
+.modal-bg.on{display:flex}
+.mbox{
+  background:#18181b;border:1px solid #27272a;border-radius:14px;
+  padding:28px 24px;max-width:320px;width:90%;text-align:center;
+}
+.mbox h3{font-size:16px;color:#e4e4e7;margin-bottom:8px;font-weight:700}
+.mbox p{font-size:13px;color:#71717a;margin-bottom:20px;line-height:1.4}
+.mbtns{display:flex;gap:8px}
+.mbtns .b{flex:1}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:#27272a;color:#d4d4d8;padding:10px 22px;
+  border-radius:8px;font-size:13px;font-weight:500;
+  border:1px solid #3f3f46;z-index:80;
+  transition:all .35s cubic-bezier(.4,0,.2,1);opacity:0;pointer-events:none;
+}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#27272a;border-radius:2px}
+
+@media(max-width:700px){
+  .opts{grid-template-columns:1fr}
+  .qtxt{font-size:15px}
+  .title{font-size:20px}
+  .hud-v{font-size:22px}
+  .qcard{padding:18px 14px}
+  #scr-mp{flex-direction:column}
+  .phalf{width:100%;height:50%;border-right:none!important}
+  .phalf.pa{border-bottom:1px solid #1e1e23}
+  .mq .qtxt{font-size:11px}
+  .mopts .opt{padding:7px 6px;font-size:10px}
+  .mhud .hud-v{font-size:16px}
+  .phead{font-size:10px;margin-bottom:3px;padding:4px 10px}
+}
+@media(max-width:380px){
+  .title{font-size:18px}.b{padding:13px 16px;font-size:14px}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="qModal">
+  <div class="mbox">
+    <h3>Oyundan Cik</h3>
+    <p>Oyundan cikmak istediginize emin misiniz? Ilerlemeniz sifirlanacak.</p>
+    <div class="mbtns">
+      <button class="b b3 bsm" onclick="closeQ()">Vazgec</button>
+      <button class="b bdanger bsm" onclick="doQuit()">Cik</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN MENU -->
+<div class="scr on" id="scr-menu">
+  <div class="menu">
+    <h1 class="title">Uzay Arastirmalari</h1>
+    <p class="sub">bilgi yarismasi</p>
+    <div class="menu-gap">
+      <button class="b b2" onclick="goSingle()">Tek Oyunculu</button>
+      <button class="b b1" onclick="goMulti()">Cift Oyunculu</button>
+      <button class="b b3" onclick="go('scr-set')">Ayarlar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="scr" id="scr-set">
+  <button class="back" onclick="go('scr-menu')">&#8592;</button>
+  <div class="spanel">
+    <h2 class="stitle">Ayarlar</h2>
+    <div class="sgroup">
+      <span class="slabel">Hedef Skor</span>
+      <div class="sval" id="dTarget">50</div>
+      <div class="scontrols">
+        <button class="sbtn" onclick="adj('t',-10)">&#8722;</button>
+        <span class="sunit">puan</span>
+        <button class="sbtn" onclick="adj('t',10)">+</button>
+      </div>
+    </div>
+    <div class="sgroup">
+      <span class="slabel">Sure (saniye / soru)</span>
+      <div class="sval" id="dTimer">15</div>
+      <div class="scontrols">
+        <button class="sbtn" onclick="adj('s',-5)">&#8722;</button>
+        <span class="sunit">sn</span>
+        <button class="sbtn" onclick="adj('s',5)">+</button>
+      </div>
+    </div>
+    <button class="b b3" style="margin-top:12px" onclick="go('scr-menu')">Geri Don</button>
+  </div>
+</div>
+
+<!-- SINGLE PLAYER -->
+<div class="scr" id="scr-sp">
+  <button class="back" onclick="askQ('s')">&#8592;</button>
+  <div class="hud">
+    <div class="hud-i"><div class="hud-l">Skor</div><div class="hud-v" id="spSc">0</div></div>
+    <div class="hud-i"><div class="hud-l">Sure</div><div class="hud-v tmr" id="spTm">15</div></div>
+    <div class="hud-i"><div class="hud-l">Hedef</div><div class="hud-v" id="spTg" style="color:#818cf8">50</div></div>
+  </div>
+  <div class="pbar-wrap"><div class="pbar" id="spPb"></div></div>
+  <div class="qcard"><div class="qnum" id="spQn">Soru 1</div><div class="qtxt" id="spQt">Yukleniyor...</div></div>
+  <div class="opts" id="spOp"></div>
+</div>
+
+<!-- MULTIPLAYER -->
+<div class="scr" id="scr-mp">
+  <button class="back" onclick="askQ('m')">&#8592;</button>
+  <div class="phalf pa">
+    <div class="phead">Oyuncu 1</div>
+    <div class="mhud">
+      <div class="hud-i"><div class="hud-l">Skor</div><div class="hud-v" id="m1Sc" style="color:#818cf8">0</div></div>
+      <div class="hud-i"><div class="hud-l">Hedef</div><div class="hud-v" id="m1Tg" style="color:#a78bfa;font-size:14px">50</div></div>
+    </div>
+    <div class="mq"><div class="qnum" id="m1Qn">Soru 1</div><div class="qtxt" id="m1Qt">Yukleniyor...</div></div>
+    <div class="mopts" id="m1Op"></div>
+  </div>
+  <div class="phalf pb">
+    <div class="phead">Oyuncu 2</div>
+    <div class="mhud">
+      <div class="hud-i"><div class="hud-l">Skor</div><div class="hud-v" id="m2Sc" style="color:#c084fc">0</div></div>
+      <div class="hud-i"><div class="hud-l">Hedef</div><div class="hud-v" id="m2Tg" style="color:#818cf8;font-size:14px">50</div></div>
+    </div>
+    <div class="mq"><div class="qnum" id="m2Qn">Soru 1</div><div class="qtxt" id="m2Qt">Yukleniyor...</div></div>
+    <div class="mopts" id="m2Op"></div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="scr" id="scr-res">
+  <div class="rbox">
+    <div class="r-badge w" id="rBdg">W</div>
+    <h2 class="r-title w" id="rTtl">Tebrikler!</h2>
+    <p class="r-sub" id="rSub">Harika performans.</p>
+    <div class="r-stats" id="rSts"></div>
+    <button class="b b2" onclick="go('scr-menu')">Ana Menu</button>
+    <button class="b b3" style="margin-top:4px" onclick="replay()">Tekrar Oyna</button>
+  </div>
+</div>
+
+<script>
+var CFG={target:50,timer:15,pts:10};
+var lastMode='s';
+var quitMode='s';
+
+var S={sc:0,qi:0,tm:0,iv:null,used:[],cur:null,ans:false,ok:0,no:0,tot:0};
+
+var M={sc:[0,0],qi:[0,0],used:[[],[]],cur:[null,null],ans:[false,false],ok:[0,0],no:[0,0],tot:[0,0],over:false};
+
+var Q=[
+{q:"NASA hangi ulkenin uzay ajansidir?",o:["Rusya","ABD","Cin","Japonya"],a:1},
+{q:"Gunes Sistemi'ndeki en buyuk gezegen hangisidir?",o:["Saturn","Jupiter","Uranus","Neptun"],a:1},
+{q:"Ay'a ilk ayak basan insan kimdir?",o:["Buzz Aldrin","Yuri Gagarin","Neil Armstrong","John Glenn"],a:2},
+{q:"Isik yili neyin birimidir?",o:["Zaman","Mesafe","Hiz","Kutle"],a:1},
+{q:"Uzaya cikan ilk insan kimdir?",o:["Neil Armstrong","Yuri Gagarin","Alan Shepard","Valentina Tereskova"],a:1},
+{q:"Mars'in rengi neden kirmizidir?",o:["Volkanik lav","Demir oksit","Gunes yansimasi","Atmosfer etkisi"],a:1},
+{q:"Kara deliklerin merkezine ne denir?",o:["Olay ufku","Tekillik","Akresyon diski","Kutle merkezi"],a:1},
+{q:"Hubble Uzay Teleskobu hangi yil firlatildi?",o:["1985","1990","1995","2000"],a:1},
+{q:"Gunes hangi yildiz sinifina aittir?",o:["Kirmizi cuce","Sari cuce","Beyaz cuce","Mavi dev"],a:1},
+{q:"Saturn'un halkalari neden olusur?",o:["Gaz bulutlari","Buz ve kaya parcalari","Metalik hidrojen","Toz bulutlari"],a:1},
+{q:"ISS yaklasik kac km yukseklikte doner?",o:["200 km","408 km","600 km","1000 km"],a:1},
+{q:"Voyager 1 ne zaman firlatildi?",o:["1969","1977","1983","1990"],a:1},
+{q:"Dunya'ya en yakin yildiz hangisidir? (Gunes haric)",o:["Sirius","Proxima Centauri","Alpha Centauri A","Barnard Yildizi"],a:1},
+{q:"Pluton hangi yil cuce gezegen ilan edildi?",o:["2000","2003","2006","2009"],a:2},
+{q:"Samanyolu galaksisinin sekli nedir?",o:["Eliptik","Duzensiz","Cubuklu sarmal","Kuresel"],a:2},
+{q:"SpaceX'in kurucusu kimdir?",o:["Jeff Bezos","Richard Branson","Elon Musk","Robert Zubrin"],a:2},
+{q:"Apollo 11 gorevi hangi yil gerceklesti?",o:["1965","1969","1972","1975"],a:1},
+{q:"Gunes Sistemi'nin en sicak gezegeni hangisidir?",o:["Merkur","Venus","Mars","Jupiter"],a:1},
+{q:"Kara deligin sinirinin adi nedir?",o:["Tekillik","Olay ufku","Akresyon halkasi","Karanlik bolge"],a:1},
+{q:"Mars'taki en yuksek dagin adi nedir?",o:["Everest","Olympus Mons","Mauna Kea","Maxwell Dagi"],a:1},
+{q:"Uzayda ses duyulur mu?",o:["Evet","Hayir","Belirli frekanslarda","Radyo ile"],a:1},
+{q:"Halley Kuyruklu Yildizi kac yilda bir gorunur?",o:["50 yil","75-76 yil","100 yil","33 yil"],a:1},
+{q:"Ilk yapay uydu hangisidir?",o:["Explorer 1","Sputnik 1","Vanguard 1","Luna 1"],a:1},
+{q:"James Webb Teleskobu hangi yil firlatildi?",o:["2019","2020","2021","2022"],a:2},
+{q:"Jupiter'in Buyuk Kirmizi Lekesi nedir?",o:["Volkan","Dev firtina","Okyanus","Krater"],a:1},
+{q:"Dunya'dan Ay'a mesafe ne kadardir?",o:["184 bin km","284 bin km","384 bin km","484 bin km"],a:2},
+{q:"Gunes Sistemi'nde kac gezegen vardir?",o:["7","8","9","10"],a:1},
+{q:"Merkur'un bir yili kac Dunya gunudur?",o:["28","58","88","188"],a:2},
+{q:"Karanlik madde nedir?",o:["Kara deliklerin ici","Gozlemlenemeyen kutle","Bos uzay","Anti-madde"],a:1},
+{q:"Hangi gezegen yatay eksende doner?",o:["Neptun","Uranus","Saturn","Venus"],a:1},
+{q:"ISS'de astronotlar gunde kac kez gun dogumu gorur?",o:["1","8","16","24"],a:2},
+{q:"Mars'a basariyla inen ilk arac hangisidir?",o:["Viking 1","Mars 3","Curiosity","Pathfinder"],a:1},
+{q:"Evrendeki en bol element hangisidir?",o:["Helyum","Hidrojen","Oksijen","Karbon"],a:1},
+{q:"Notron yildizi nasil olusur?",o:["Galaksi carpismasi","Supernova patlamasi","Kara delik buharlasmasi","Yildiz birlesmesi"],a:1},
+{q:"Venus'un atmosferi hangi gazdan olusur?",o:["Oksijen","Azot","Karbondioksit","Metan"],a:2},
+{q:"Kuiper Kusagi nerededir?",o:["Mars-Jupiter arasi","Neptun otesi","Gunes'e en yakin","Saturn halkalari"],a:1},
+{q:"Mikrogravite ne demektir?",o:["Sifir yercekimi","Cok zayif yercekimi hissi","Ters yercekimi","Guclu manyetik alan"],a:1},
+{q:"Ay yuzeyinde su bulundu mu?",o:["Hayir","Evet, buz formunda","Sivi halde","Buhar halinde"],a:1},
+{q:"En kisa yila sahip gezegen hangisidir?",o:["Venus","Mars","Merkur","Dunya"],a:2},
+{q:"Falcon Heavy hangi sirkete aittir?",o:["Boeing","NASA","SpaceX","Blue Origin"],a:2},
+{q:"Uzayda ilk yuruyusu yapan astronot kimdir?",o:["Yuri Gagarin","Aleksey Leonov","Ed White","Neil Armstrong"],a:1},
+{q:"Jupiter'in kac Galilean uydusu vardir?",o:["2","3","4","6"],a:2},
+{q:"Titan hangi gezegenin uydusudur?",o:["Jupiter","Saturn","Uranus","Neptun"],a:1},
+{q:"Gunes'in yuzey sicakligi yaklasik kac derecedir?",o:["2500 C","5500 C","10000 C","15000 C"],a:1},
+{q:"Chandrayaan misyonlari hangi ulkeye aittir?",o:["Cin","Japonya","Hindistan","Rusya"],a:2},
+{q:"Dunya'nin manyetik alani bizi neyden korur?",o:["Asteroidler","Gunes ruzgari","Kara delikler","Gamma isinlari"],a:1},
+{q:"Ganymede hangi gezegenin uydusudur?",o:["Saturn","Jupiter","Uranus","Neptun"],a:1},
+{q:"Ilk uzay istasyonunun adi nedir?",o:["ISS","Mir","Salyut 1","Skylab"],a:2},
+{q:"Bir galakside ortalama kac yildiz bulunur?",o:["Binlerce","Milyonlarca","Milyarlarca","Trilyonlarca"],a:2},
+{q:"Perseverance rover hangi gezegendedir?",o:["Venus","Mars","Jupiter","Ay"],a:1},
+{q:"Dunya'ya ikiz gezegen olarak anilan hangisidir?",o:["Mars","Merkur","Venus","Neptun"],a:2},
+{q:"Oort Bulutu ne ile iliskilidir?",o:["Asteroidler","Kuyruklu yildizlar","Karanlik madde","Notron yildizlari"],a:1},
+{q:"Ay'in Dunya cevresindeki donus suresi ne kadardir?",o:["14 gun","27.3 gun","30 gun","45 gun"],a:1},
+{q:"Big Bang yaklasik kac yil once gerceklesti?",o:["7.8 milyar","10.2 milyar","13.8 milyar","18 milyar"],a:2},
+{q:"Kac tane Dunya Jupiter'in icine sigar?",o:["100","500","1000","1300"],a:3},
+{q:"Asteroit kusagi hangi iki gezegenin arasindadir?",o:["Dunya-Mars","Mars-Jupiter","Jupiter-Saturn","Saturn-Uranus"],a:1},
+{q:"Columbia faciasi hangi yil yasandi?",o:["1986","1998","2003","2007"],a:2},
+{q:"Challenger faciasi hangi yil olmustur?",o:["1984","1986","1988","1990"],a:1},
+{q:"Mars'ta bir gun yaklasik ne kadar surer?",o:["20 saat","24 saat 37 dk","28 saat","36 saat"],a:1},
+{q:"Jupiter atmosferinde en cok bulunan gaz hangisidir?",o:["Helyum","Hidrojen","Metan","Amonyak"],a:1},
+{q:"Andromeda galaksisi Samanyolu'na yaklasisyor mu?",o:["Hayir","Evet","Sabit duruyor","Sadece donuyor"],a:1},
+{q:"Laika hangi uzay araciyla gonderildi?",o:["Sputnik 1","Sputnik 2","Vostok 1","Mercury 7"],a:1},
+{q:"Hubble Teleskobu'nun adi nereden gelir?",o:["Bir gezegen","Bir galaksi","Astronom Edwin Hubble","Bir yildiz"],a:2},
+{q:"Dunya'nin yorunge hizi yaklasik ne kadardir?",o:["10000 km/s","30 km/s","300000 km/s","1000 km/s"],a:1},
+{q:"Evrende en hizli hareket eden sey nedir?",o:["Notrinolar","Isik","Radyo dalgalari","Gravitasyon dalgalari"],a:1},
+{q:"2024 itibariyle en fazla uyduya sahip gezegen hangisidir?",o:["Jupiter","Saturn","Uranus","Neptun"],a:1},
+{q:"Artemis programinin hedefi nedir?",o:["Mars'a insan","Ay'a yeniden insan","ISS'yi buyutmek","Jupiter'e sonda"],a:1},
+{q:"Bir pulsar nedir?",o:["Soguyan yildiz","Donen notron yildizi","Kucuk kara delik","Parlayan nebula"],a:1},
+{q:"Supernova nedir?",o:["Yildiz dogumu","Yildiz patlamasi","Galaksi carpismasi","Kara delik olusumu"],a:1},
+{q:"Gunes'ten Dunya'ya isik kac dakikada ulasir?",o:["1 dakika","8 dakika","15 dakika","30 dakika"],a:1},
+{q:"Isigin hizi saniyede yaklasik kac km'dir?",o:["100000","200000","300000","400000"],a:2},
+{q:"Karanlik enerji evrenin yuzde kacini olusturur?",o:["27","50","68","85"],a:2},
+{q:"Beyaz cuce yildiz nedir?",o:["Yeni dogan yildiz","Olmus yildizin kalintisi","En parlak yildiz","Kara delik oncesi"],a:1},
+{q:"Geostasyoner yorunge ne demektir?",o:["Dunya ile ayni hizda donen","Gunes'e en yakin","Ay'a paralel","Eliptik yorunge"],a:0},
+{q:"Hangi renk yildizlar en sicaktir?",o:["Kirmizi","Sari","Beyaz","Mavi"],a:3},
+{q:"New Horizons hangi cuce gezegeni ziyaret etti?",o:["Ceres","Eris","Pluton","Haumea"],a:2},
+{q:"Cassini misyonu hangi gezegenle ilgiliydi?",o:["Jupiter","Saturn","Uranus","Mars"],a:1},
+{q:"Ilk kadin astronot kimdir?",o:["Sally Ride","Valentina Tereskova","Mae Jemison","Peggy Whitson"],a:1},
+{q:"Yildizlarin enerji kaynagi hangi elementtir?",o:["Oksijen","Karbon","Hidrojen","Helyum"],a:2},
+{q:"ISS hangi hizla hareket eder?",o:["7700 km/s","27600 km/s","27600 km/h","7700 km/h"],a:2},
+{q:"Mars'in kac uydusu vardir?",o:["0","1","2","4"],a:2},
+{q:"Mars'in uydularinin isimleri nedir?",o:["Europa-Io","Phobos-Deimos","Titan-Rhea","Triton-Charon"],a:1},
+{q:"Europa neden onemlidir?",o:["En buyuk uydu","Buzun altinda okyanus","Atmosferi var","En yakin uydu"],a:1},
+{q:"Kara delik teorisine en cok katkida bulunan kimdir?",o:["Newton","Einstein","Stephen Hawking","Galileo"],a:2},
+{q:"Genel gorelilik teorisi neyi aciklar?",o:["Elektrik","Kutle cekimi","Kuantum mekani","Termodinamik"],a:1},
+{q:"SpaceX'in yeniden kullanilabilir roketi hangisidir?",o:["Atlas V","Falcon 9","Delta IV","Ariane 5"],a:1},
+{q:"GPS uydulari hangi yorungede calisir?",o:["Alcak Dunya","Orta Dunya","Geostasyoner","Kutupsal"],a:1},
+{q:"Yercekimi dalgalari ilk kez ne zaman tespit edildi?",o:["2005","2010","2015","2020"],a:2},
+{q:"Gunes Sistemi'ndeki en buyuk uydu hangisidir?",o:["Titan","Ganymede","Europa","Ay"],a:1},
+{q:"Yengec Nebulasi hangi takimyildizindadir?",o:["Orion","Boga","Akrep","Ikizler"],a:1},
+{q:"Hubble sabiti neyi olcer?",o:["Yildiz parlakli","Evrenin genisleme hizi","Kara delik kutlesi","Isik hizi"],a:1},
+{q:"Samanyolu'nun merkezinde ne vardir?",o:["Nebula","Super kutleli kara delik","Dev yildiz kumesi","Beyaz cuce"],a:1},
+{q:"Triton hangi gezegenin uydusudur?",o:["Saturn","Jupiter","Uranus","Neptun"],a:3},
+{q:"Ekseni en egik gezegen hangisidir?",o:["Mars","Uranus","Dunya","Saturn"],a:1},
+{q:"Hangi gezegen ters yonde doner?",o:["Mars","Uranus","Venus","Neptun"],a:2},
+{q:"Ilk Mars fotografini gonderen arac hangisidir?",o:["Mariner 4","Viking 1","Pathfinder","Curiosity"],a:0},
+{q:"Bir yildizin yasam dongusu nereye kadar gidebilir?",o:["Sadece kara delik","Sadece beyaz cuce","Her ikisi de olabilir","Hicbiri"],a:2},
+{q:"Bilinen en buyuk kozmik yapi nedir?",o:["Andromeda","Sloan Buyuk Duvari","Hercules-Corona Duvari","Samanyolu"],a:2},
+{q:"Dunya'nin yasi yaklasik ne kadardir?",o:["3.5 milyar yil","4.5 milyar yil","5.5 milyar yil","6.5 milyar yil"],a:1},
+{q:"Uzay boslugunun sicakligi yaklasik kac derecedir?",o:["-100 C","-200 C","-270 C","-350 C"],a:2},
+{q:"Io uydusu neyle unlud?",o:["Buz kapli yuzey","Aktif volkanlar","Kalin atmosfer","Su okyansuslari"],a:1},
+{q:"SETI projesi ne arastirir?",o:["Karanlik madde","Dunya disi zeki yasam","Kara delikler","Gunes patlamalari"],a:1},
+{q:"Kozmik mikrodalga arka plan radyasyonu nedir?",o:["Yildiz isigi","Big Bang'in artik isisi","Kara delik radyasyonu","Gunes ruzgari"],a:1},
+{q:"Gunes Sistemi'ni terk eden uzay araci hangisidir?",o:["New Horizons","Voyager 1","Pioneer 10","Cassini"],a:1},
+{q:"Regolit nedir?",o:["Mars topragi","Ay yuzey tozu","Asteroit parcasi","Uzay tozlari"],a:1},
+{q:"Ceres nedir?",o:["Asteroid","Cuce gezegen","Uydu","Kuyruklu yildiz"],a:1},
+{q:"Mars atmosferinin buyuk bolumu hangi gazdan olusur?",o:["Azot","Oksijen","Karbondioksit","Argon"],a:2},
+{q:"Bir gezegenin uyduya sahip olmasi icin ne gerekir?",o:["Atmosfer","Yeterli kutle cekim gucu","Su","Manyetik alan"],a:1}
+];
+
+function go(id){
+  var cur=document.querySelector('.scr.on');
+  if(cur){cur.classList.remove('on');setTimeout(function(){cur.style.display='none';sh(id)},300)}
+  else sh(id);
+}
+function sh(id){var el=document.getElementById(id);el.style.display='';void el.offsetWidth;el.classList.add('on')}
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+function adj(t,d){
+  if(t==='t'){CFG.target=Math.max(10,Math.min(200,CFG.target+d));document.getElementById('dTarget').textContent=CFG.target}
+  else{CFG.timer=Math.max(5,Math.min(60,CFG.timer+d));document.getElementById('dTimer').textContent=CFG.timer}
+}
+
+function askQ(m){quitMode=m;document.getElementById('qModal').classList.add('on')}
+function closeQ(){document.getElementById('qModal').classList.remove('on')}
+function doQuit(){closeQ();clearInterval(S.iv);go('scr-menu')}
+
+function pick(used){
+  var av=[];
+  for(var i=0;i<Q.length;i++){if(used.indexOf(i)===-1)av.push(i)}
+  if(!av.length){used.length=0;for(var j=0;j<Q.length;j++)av.push(j)}
+  var idx=av[Math.floor(Math.random()*av.length)];
+  used.push(idx);
+  return Q[idx];
+}
+function shuf(q){
+  var cor=q.o[q.a];var s=q.o.slice();
+  for(var i=s.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=s[i];s[i]=s[j];s[j]=tmp}
+  return{q:q.q,o:s,a:s.indexOf(cor)};
+}
+
+function goSingle(){
+  lastMode='s';S.sc=0;S.qi=0;S.used=[];S.ans=false;S.ok=0;S.no=0;S.tot=0;clearInterval(S.iv);
+  document.getElementById('spSc').textContent='0';
+  document.getElementById('spTg').textContent=CFG.target;
+  document.getElementById('spPb').style.width='0%';
+  go('scr-sp');
+  setTimeout(loadSP,320);
+}
+
+function loadSP(){
+  S.ans=false;S.qi++;S.tot++;
+  S.cur=shuf(pick(S.used));
+  document.getElementById('spQn').textContent='Soru '+S.qi;
+  document.getElementById('spQt').textContent=S.cur.q;
+  var el=document.getElementById('spOp');el.innerHTML='';
+  var lt=['A','B','C','D'];
+  for(var i=0;i<S.cur.o.length;i++){
+    (function(idx){
+      var b=document.createElement('button');b.className='opt';
+      b.innerHTML='<span class="olet">'+lt[idx]+'</span>'+S.cur.o[idx];
+      b.onclick=function(){ansSP(idx,b)};
+      el.appendChild(b);
+    })(i);
+  }
+  startTm();
+}
+
+function startTm(){
+  clearInterval(S.iv);S.tm=CFG.timer;
+  var te=document.getElementById('spTm');te.textContent=S.tm;te.classList.remove('low');
+  S.iv=setInterval(function(){
+    S.tm--;te.textContent=S.tm;
+    if(S.tm<=5)te.classList.add('low');
+    if(S.tm<=0){clearInterval(S.iv);tmOut()}
+  },1000);
+}
+
+function tmOut(){
+  if(S.ans)return;S.ans=true;S.no++;toast('Sure doldu!');
+  var bs=document.querySelectorAll('#spOp .opt');
+  for(var i=0;i<bs.length;i++){bs[i].classList.add('dis');if(i===S.cur.a)bs[i].classList.add('ok')}
+  setTimeout(chkSP,1100);
+}
+
+function ansSP(sel,btn){
+  if(S.ans)return;S.ans=true;clearInterval(S.iv);
+  var bs=document.querySelectorAll('#spOp .opt');
+  for(var i=0;i<bs.length;i++)bs[i].classList.add('dis');
+  if(sel===S.cur.a){
+    btn.classList.add('ok');S.sc+=CFG.pts;S.ok++;
+    document.getElementById('spSc').textContent=S.sc;
+    var pct=Math.min(100,(S.sc/CFG.target)*100);
+    document.getElementById('spPb').style.width=pct+'%';
+  }else{
+    btn.classList.add('no');S.no++;bs[S.cur.a].classList.add('ok');
+  }
+  setTimeout(chkSP,1000);
+}
+
+function chkSP(){
+  if(S.sc>=CFG.target){
+    clearInterval(S.iv);
+    var rate=S.tot?Math.round((S.ok/S.tot)*100):0;
+    res({w:true,ttl:'Tebrikler!',sub:'Hedef skora ulastiniz.',stats:[
+      ['Toplam Skor',S.sc],['Dogru',S.ok],['Yanlis',S.no],['Soru Sayisi',S.tot],['Basari','%'+rate]
+    ]});
+  }else loadSP();
+}
+
+function goMulti(){
+  lastMode='m';M.sc=[0,0];M.qi=[0,0];M.used=[[],[]];M.cur=[null,null];
+  M.ans=[false,false];M.ok=[0,0];M.no=[0,0];M.tot=[0,0];M.over=false;
+  document.getElementById('m1Sc').textContent='0';
+  document.getElementById('m2Sc').textContent='0';
+  document.getElementById('m1Tg').textContent=CFG.target;
+  document.getElementById('m2Tg').textContent=CFG.target;
+  go('scr-mp');
+  setTimeout(function(){loadMP(0);loadMP(1)},320);
+}
+
+function loadMP(p){
+  if(M.over)return;
+  M.ans[p]=false;M.qi[p]++;M.tot[p]++;
+  M.cur[p]=shuf(pick(M.used[p]));
+  var n=p+1;
+  document.getElementById('m'+n+'Qn').textContent='Soru '+M.qi[p];
+  document.getElementById('m'+n+'Qt').textContent=M.cur[p].q;
+  var el=document.getElementById('m'+n+'Op');el.innerHTML='';
+  var lt=['A','B','C','D'];
+  for(var i=0;i<M.cur[p].o.length;i++){
+    (function(idx){
+      var b=document.createElement('button');b.className='opt';
+      b.innerHTML='<span class="olet">'+lt[idx]+'</span>'+M.cur[p].o[idx];
+      b.onclick=function(){ansMP(p,idx,b)};
+      el.appendChild(b);
+    })(i);
+  }
+}
+
+function ansMP(p,sel,btn){
+  if(M.ans[p]||M.over)return;
+  M.ans[p]=true;var n=p+1;
+  var bs=document.querySelectorAll('#m'+n+'Op .opt');
+  for(var i=0;i<bs.length;i++)bs[i].classList.add('dis');
+  if(sel===M.cur[p].a){
+    btn.classList.add('ok');M.sc[p]+=CFG.pts;M.ok[p]++;
+    document.getElementById('m'+n+'Sc').textContent=M.sc[p];
+  }else{
+    btn.classList.add('no');M.no[p]++;bs[M.cur[p].a].classList.add('ok');
+  }
+  setTimeout(function(){
+    if(M.over)return;
+    if(M.sc[p]>=CFG.target){
+      M.over=true;
+      res({w:true,ttl:'Oyuncu '+(p+1)+' Kazandi!',sub:'Hedefe ilk ulasan oyuncu.',stats:[
+        ['Oyuncu 1 Skor',M.sc[0]],['Oyuncu 2 Skor',M.sc[1]],
+        ['O1 Dogru',M.ok[0]],['O2 Dogru',M.ok[1]],
+        ['O1 Yanlis',M.no[0]],['O2 Yanlis',M.no[1]]
+      ]});
+    }else loadMP(p);
+  },800);
+}
+
+function res(d){
+  clearInterval(S.iv);
+  var bdg=document.getElementById('rBdg');
+  bdg.textContent=d.w?'W':'L';bdg.className='r-badge '+(d.w?'w':'l');
+  var ttl=document.getElementById('rTtl');
+  ttl.textContent=d.ttl;ttl.className='r-title '+(d.w?'w':'l');
+  document.getElementById('rSub').textContent=d.sub;
+  var se=document.getElementById('rSts');se.innerHTML='';
+  for(var i=0;i<d.stats.length;i++){
+    var r=document.createElement('div');r.className='st-row';
+    r.innerHTML='<span class="st-l">'+d.stats[i][0]+'</span><span class="st-v">'+d.stats[i][1]+'</span>';
+    se.appendChild(r);
+  }
+  go('scr-res');
+}
+
+function replay(){if(lastMode==='s')goSingle();else goMulti()}
+</script>
+</body>
+</html>
+```
